@@ -2,6 +2,8 @@ package com.example.AddressBook.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -9,54 +11,60 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:8080")
 public class AddressController {
 
-        private final List<Contact> contacts = new ArrayList<>();
-        private long nextId = 1;
+    private final List<Contact> contacts = new ArrayList<>();
+    private long nextId = 1;
 
-        @PostMapping
-        public Contact addContact(@RequestBody Contact contact) {
-            contact.setId(nextId++);
-            contacts.add(contact);
-            return contact;
-        }
+    @PostMapping
+    public ResponseEntity<Contact> addContact(@RequestBody Contact contact) {
+        contact.setId(nextId++);
+        contacts.add(contact);
+        return ResponseEntity.ok(contact);
+    }
 
-        @GetMapping
-        public List<Contact> getAllContacts() {
-            return contacts;
-        }
+    @GetMapping
+    public ResponseEntity<List<Contact>> getAllContacts() {
+        return ResponseEntity.ok(contacts);
+    }
 
-        @GetMapping("/{id}")
-        public Contact getContactById(@PathVariable Long id) {
-            return contacts.stream()
-                    .filter(contact -> contact.getId().equals(id))
-                    .findFirst()
-                    .orElse(null);
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
+        Optional<Contact> contact = contacts.stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst();
 
-        @PutMapping("/{id}")
-        public Contact updateContact(@PathVariable Long id, @RequestBody Contact updatedContact) {
-            for (Contact contact : contacts) {
-                if (contact.getId().equals(id)) {
-                    contact.setName(updatedContact.getName());
-                    contact.setPhone(updatedContact.getPhone());
-                    contact.setEmail(updatedContact.getEmail());
-                    contact.setAddress(updatedContact.getAddress());
-                    return contact;
-                }
+        return contact.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody Contact updatedContact) {
+        for (Contact contact : contacts) {
+            if (contact.getId().equals(id)) {
+                contact.setName(updatedContact.getName());
+                contact.setPhone(updatedContact.getPhone());
+                contact.setEmail(updatedContact.getEmail());
+                contact.setAddress(updatedContact.getAddress());
+                return ResponseEntity.ok(contact);
             }
-            return null;
         }
+        return ResponseEntity.notFound().build();
+    }
 
-        @DeleteMapping("/{id}")
-        public String deleteContact(@PathVariable Long id) {
-            Optional<Contact> contactToRemove = contacts.stream()
-                    .filter(contact -> contact.getId().equals(id))
-                    .findFirst();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteContact(@PathVariable Long id) {
+        Optional<Contact> contactToRemove = contacts.stream()
+                .filter(contact -> contact.getId().equals(id))
+                .findFirst();
 
-            contactToRemove.ifPresent(contacts::remove);
-            return "Contact deleted successfully";
+        if (contactToRemove.isPresent()) {
+            contacts.remove(contactToRemove.get());
+            return ResponseEntity.ok("Contact deleted successfully");
         }
+        return ResponseEntity.notFound().build();
+    }
+}
 
-        static class Contact {
+         class Contact {
             private Long id;
             private String name;
             private String phone;
@@ -78,6 +86,6 @@ public class AddressController {
             public String getAddress() { return address; }
             public void setAddress(String address) { this.address = address; }
         }
-    }
+
 
 
