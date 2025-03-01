@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.AddressBook.dto.ContactDTO;
+import com.example.AddressBook.model.Contact;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,10 @@ public class AddressController {
 
     private final List<Contact> contacts = new ArrayList<>();
     private long nextId = 1;
+
+    private Contact convertToModel(ContactDTO contactDTO) {
+        return new Contact(contactDTO.getName(), contactDTO.getPhone(), contactDTO.getEmail(), "Default Address");
+    }
 
     @PostMapping
     public ResponseEntity<Contact> addContact(@RequestBody Contact contact) {
@@ -64,28 +70,6 @@ public class AddressController {
     }
 }
 
-         class Contact {
-            private Long id;
-            private String name;
-            private String phone;
-            private String email;
-            private String address;
-
-            public Long getId() { return id; }
-            public void setId(Long id) { this.id = id; }
-
-            public String getName() { return name; }
-            public void setName(String name) { this.name = name; }
-
-            public String getPhone() { return phone; }
-            public void setPhone(String phone) { this.phone = phone; }
-
-            public String getEmail() { return email; }
-            public void setEmail(String email) { this.email = email; }
-
-            public String getAddress() { return address; }
-            public void setAddress(String address) { this.address = address; }
-        }
 
 
 
