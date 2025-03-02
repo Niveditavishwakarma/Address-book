@@ -1,10 +1,10 @@
 package com.example.AddressBook.controller;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
 import com.example.AddressBook.dto.ContactDTO;
 import com.example.AddressBook.model.Contact;
+import com.example.AddressBook.service.AddressBookService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,60 +13,37 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:8080")
 public class AddressController {
 
-    private final List<Contact> contacts = new ArrayList<>();
-    private long nextId = 1;
+    @Autowired
+    private AddressBookService addressBookService;
 
-    private Contact convertToModel(ContactDTO contactDTO) {
-        return new Contact(contactDTO.getName(), contactDTO.getPhone(), contactDTO.getEmail(), "Default Address");
+    @PostMapping("/add")
+    public ResponseEntity<Contact> addContact(@RequestBody ContactDTO addressBookDto) {
+        Contact newContact = addressBookService.addEntry(addressBookDto);
+        return new ResponseEntity<>(newContact, HttpStatus.CREATED);
     }
 
-    @PostMapping
-    public ResponseEntity<Contact> addContact(@RequestBody Contact contact) {
-        contact.setId(nextId++);
-        contacts.add(contact);
-        return ResponseEntity.ok(contact);
-    }
-
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<List<Contact>> getAllContacts() {
-        return ResponseEntity.ok(contacts);
+        List<Contact> contacts = addressBookService.getAllEntries();
+        return new ResponseEntity<>(contacts, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
-        Optional<Contact> contact = contacts.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst();
-
-        return contact.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/get/{id}")
+    public ResponseEntity<Contact> getContactById(@PathVariable long id) {
+        Contact contact = addressBookService.getEntryById(id);
+        return new ResponseEntity<>(contact, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody Contact updatedContact) {
-        for (Contact contact : contacts) {
-            if (contact.getId().equals(id)) {
-                contact.setName(updatedContact.getName());
-                contact.setPhone(updatedContact.getPhone());
-                contact.setEmail(updatedContact.getEmail());
-                contact.setAddress(updatedContact.getAddress());
-                return ResponseEntity.ok(contact);
-            }
-        }
-        return ResponseEntity.notFound().build();
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Contact> updateContact(@PathVariable long id, @RequestBody ContactDTO addressBookDto) {
+        Contact updatedContact = addressBookService.updateEntry(id, addressBookDto);
+        return new ResponseEntity<>(updatedContact, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteContact(@PathVariable Long id) {
-        Optional<Contact> contactToRemove = contacts.stream()
-                .filter(contact -> contact.getId().equals(id))
-                .findFirst();
-
-        if (contactToRemove.isPresent()) {
-            contacts.remove(contactToRemove.get());
-            return ResponseEntity.ok("Contact deleted successfully");
-        }
-        return ResponseEntity.notFound().build();
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteContact(@PathVariable long id) {
+        addressBookService.deleteEntry(id);
+        return new ResponseEntity<>("Contact deleted successfully", HttpStatus.OK);
     }
 }
 

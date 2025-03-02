@@ -1,15 +1,11 @@
 package com.example.AddressBook.model;
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
-@Entity
-@Table(name = "contacts")
+
+
 public class Contact {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String phone;
@@ -19,7 +15,9 @@ public class Contact {
     public Contact() {
     }
 
-    public Contact(String name, String phone, String email, String address) {
+
+    public Contact(Long id,String name, String phone, String email, String address) {
+        this.id = id;
         this.name = name;
         this.phone = phone;
         this.email = email;
